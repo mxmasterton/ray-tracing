@@ -1,17 +1,12 @@
-#include "rt.hpp"
 #include "camera.hpp"
 #include "hittable_list.hpp"
 #include "sphere.hpp"
 
 int main() {
-    hittable_list world;
-    world.add(std::make_shared<sphere>(point3(0, 0, -1), 0.5));
-    world.add(std::make_shared<sphere>(point3(0, -100.5, -1), 100));
+    HittableList world;
+    world.Add(std::make_shared<Sphere>(Point(0, 0, -1), 0.5));
+    world.Add(std::make_shared<Sphere>(Point(0, -100.5, -1), 100));
 
-    camera cam;
-    cam.aspect_ratio = 16.0 / 9.0;
-    cam.image_width = 1000;
-    cam.samples_per_pixel = 50;
-
-    cam.render(world);
+    Camera cam(16.0 / 9.0, 1000, 50);
+    cam.Render(world);
 }

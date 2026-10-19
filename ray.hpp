@@ -1,20 +1,19 @@
 #pragma once
 
-#include "vec3.hpp"
+#include "vector.hpp"
 
-class ray {
+class Ray {
 public:
-    ray() {}
-    ray(const point3& origin, const vec3& direction) : orig(origin), dir(direction) {}
+    Ray(const Point& origin, const Vector& direction) : origin_(origin), direction_(direction) {}
 
-    const point3& origin() const { return orig; }
-    const vec3& direction() const {return dir; }
+    const Point& origin() const { return origin_; }
+    const Vector& direction() const { return direction_; }
 
-    point3 at(double t) const {
-        return orig + t*dir;
+    Point At(double t) const {
+        return origin_ + t * direction_;
     }
 
 private:
-    point3 orig;
-    vec3 dir;
+    Point origin_;
+    Vector direction_;
 };

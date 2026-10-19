@@ -2,34 +2,39 @@
 
 #include "rt.hpp"
 
-class interval {
+class Interval {
 public:
-    double min, max;
+    Interval() : min_(+kInfinity), max_(-kInfinity) {}
+    Interval(double min, double max) : min_(min), max_(max) {}
 
-    interval() : min(+infinity), max(-infinity) {}
+    double min() const { return min_; }
+    double max() const { return max_; }
 
-    interval(double min, double max) : min(min), max(max) {}
-
-    double size() const {
-        return max - min;
+    double Size() const {
+        return max_ - min_;
     }
 
-    bool contains(double x) const {
-        return min <= x && x <= max;
+    bool Contains(double x) const {
+        return min_ <= x && x <= max_;
     }
 
-    bool surrounds(double x) const {
-        return min < x && x < max;
+    bool Surrounds(double x) const{
+        return min_ < x && x < max_;
     }
 
-    double clamp(double x) const {
-        if (x < min) return min;
-        if (x > max) return max;
+    double Clamp(double x) const {
+        if (x < min_) return min_;
+        if (x > max_) return max_;
         return x;
     }
 
-    static const interval empty, universe;
+    static const Interval kEmpty;
+    static const Interval kUniverse;
+
+private:
+    double min_;
+    double max_;
 };
 
-const interval interval::empty = interval(+infinity, -infinity);
-const interval interval::universe = interval(-infinity, infinity);
+inline const Interval Interval::kEmpty(+kInfinity, -kInfinity);
+inline const Interval Interval::kUniverse(-kInfinity, +kInfinity);

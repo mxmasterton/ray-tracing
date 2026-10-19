@@ -1,25 +1,26 @@
 #pragma once
 
-#include "rt.hpp"
+#include "interval.hpp"
+#include "ray.hpp"
+#include "vector.hpp"
 
-class hit_record {
-public:
-    point3 p;
-    vec3 normal;
+struct HitRecord {
+    Point p;
+    Vector normal;
     double t;
     bool front_face;
 
-    void set_face_normal(const ray& r, const vec3& outward_normal) {
-        // Sets the hit record normal vector
+    void SetFaceNormal(const Ray& r, const Vector& outward_normal) {
+        // Sets the HitRecord normal vector
         // Note: the parameter 'outward_normal' is assumed to have unit length
-        front_face = dot(r.direction(), outward_normal) < 0;
+        front_face = Dot(r.direction(), outward_normal) < 0;
         normal = front_face ? outward_normal : -outward_normal;
     }
 };
 
-class hittable {
+class Hittable {
 public:
-    virtual ~hittable() = default;
+    virtual ~Hittable() = default;
 
-    virtual bool hit(const ray& r, interval ray_t, hit_record& rec) const = 0;
+    virtual bool Hit(const Ray& r, Interval ray_t, HitRecord& rec) const = 0;
 };

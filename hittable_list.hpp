@@ -1,30 +1,29 @@
 #pragma once
 
-#include "hittable.hpp"
-
 #include <memory>
 #include <vector>
 
-class hittable_list : public hittable {
+#include "hittable.hpp"
+#include "interval.hpp"
+
+class HittableList : public Hittable {
 public:
-    std::vector<std::shared_ptr<hittable>> objects;
+    HittableList() {}
+    HittableList(std::shared_ptr<Hittable> object) { Add(object); }
 
-    hittable_list() {}
-    hittable_list(std::shared_ptr<hittable> object) { add(object); }
+    void Clear() { objects.clear(); }
 
-    void clear() { objects.clear(); }
-
-    void add(std::shared_ptr<hittable> object) {
+    void Add(std::shared_ptr<Hittable> object) {
         objects.push_back(object);
     }
 
-    bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
-        hit_record temp_rec;
+    bool Hit(const Ray& r, Interval ray_t, HitRecord& rec) const override {
+        HitRecord temp_rec;
         bool hit_anything = false;
-        auto closest_so_far = ray_t.max;
+        auto closest_so_far = ray_t.max();
 
         for (const auto& object : objects) {
-            if (object->hit(r, interval(ray_t.min, closest_so_far), temp_rec)) {
+            if (object->Hit(r, Interval(ray_t.min(), closest_so_far), temp_rec)) {
                 hit_anything = true;
                 closest_so_far = temp_rec.t;
                 rec = temp_rec;
@@ -33,4 +32,7 @@ public:
 
         return hit_anything;
     }
+
+private:
+    std::vector<std::shared_ptr<Hittable>> objects;
 };
