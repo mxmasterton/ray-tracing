@@ -46,6 +46,7 @@ public:
                     Ray r = GetRay(i, j);
                     pixel_colour += RayColour(r, world);
                 }
+                WriteColour(std::cout, pixel_colour * pixel_samples_scale_);
             }
         }
 
