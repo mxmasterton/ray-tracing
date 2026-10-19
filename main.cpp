@@ -1,31 +1,18 @@
-#include "colour.hpp"
-#include "ray.hpp"
-#include "vec3.hpp"
+#include "rt.hpp"
 
-double hit_sphere(const point3& centre, double radius, const ray& r) {
-    vec3 oc = centre - r.origin();
-    auto a = dot(r.direction(), r.direction());
-    auto b = -2.0 * dot(r.direction(), oc);
-    auto c = dot(oc, oc) - radius*radius;
-    auto discriminant = b*b - 4*a*c;
+#include "hittable.hpp"
+#include "hittable_list.hpp"
+#include "sphere.hpp"
 
-    if (discriminant < 0) {
-        return -1.0;
-    } else {
-        return (-b - std::sqrt(discriminant)) / (2.0 * a);
+colour ray_colour(const ray& r, const hittable& world) {
+    hit_record rec;
+    if (world.hit(r, interval(0, infinity), rec)) {
+        return 0.5 * (rec.normal + colour(1, 1, 1));
     }
-}
 
-colour ray_colour(const ray& r) {
-    auto centre = point3(0, 0, -1);
-    auto t = hit_sphere(centre, 0.5, r);
-    if (t > 0.0) {
-        vec3 N = unit_vector(r.at(t) - centre);
-        return 0.5*colour(N.x() + 1, N.y() + 1, N.z() + 1);
-    }
     vec3 unit_direction = unit_vector(r.direction());
-    auto a = 0.5*(unit_direction.y() + 1.0);
-    return (1.0 - a)*colour(1.0, 1.0, 1.0) + a*colour(0.5, 0.7, 1.0);
+    auto a = 0.5 * (unit_direction.y() + 1);
+    return (1.0 - a) * colour(1.0, 1.0, 1.0) + a * colour(0.5, 0.7, 1.0);
 }
 
 int main() {
@@ -36,6 +23,11 @@ int main() {
     // Calculate the image height, and ensure that it's at least 1.
     int image_height = static_cast<int>(image_width / aspect_ratio);
     image_height = (image_height < 1) ? 1 : image_height;
+
+    // World
+    hittable_list world;
+    world.add(std::make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(std::make_shared<sphere>(point3(0, -100.5, -1), 100));
 
     // Camera
     auto focal_length = 1;
@@ -67,7 +59,7 @@ int main() {
             auto ray_direction = pixel_centre - camera_centre;
             ray r(camera_centre, ray_direction);
 
-            colour pixel_colour = ray_colour(r);
+            colour pixel_colour = ray_colour(r, world);
             write_colour(std::cout, pixel_colour);
         }
     }
