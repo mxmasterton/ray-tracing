@@ -86,7 +86,7 @@ private:
     Colour RayColour(const Ray& r, const Hittable& world) const {
         HitRecord rec;
 
-        if (world.Hit(r, Interval(0, kInfinity), rec)) {
+        if (world.Hit(r, Interval(0.001, kInfinity), rec)) {
             Vector direction = RandomOnHemisphere(rec.normal);
             return 0.5 * RayColour(Ray(rec.p, direction), world);
         }
