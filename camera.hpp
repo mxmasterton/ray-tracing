@@ -10,8 +10,9 @@
 
 class Camera {
 public:
-    Camera(double aspect_ratio, int image_width, int samples_per_pixel) :
-        aspect_ratio_(aspect_ratio), image_width_(image_width), samples_per_pixel_(samples_per_pixel) {
+    Camera(double aspect_ratio, int image_width, int samples_per_pixel, int max_depth) :
+        aspect_ratio_(aspect_ratio), image_width_(image_width),
+        samples_per_pixel_(samples_per_pixel), max_depth_(max_depth) {
         image_height_ = static_cast<int>(image_width / aspect_ratio);
         image_height_ = (image_height_ < 1) ? 1 : image_height_;
 
@@ -44,7 +45,7 @@ public:
                 Colour pixel_colour(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel_; ++sample) {
                     Ray r = GetRay(i, j);
-                    pixel_colour += RayColour(r, world);
+                    pixel_colour += RayColour(r, 0, world);
                 }
                 WriteColour(std::cout, pixel_colour * pixel_samples_scale_);
             }
@@ -57,6 +58,7 @@ private:
     int image_width_;
     int image_height_;
     int samples_per_pixel_;
+    int max_depth_;
     double aspect_ratio_;
     double pixel_samples_scale_;
     Point centre_;
@@ -83,12 +85,17 @@ private:
         return Vector(RandomDouble() - 0.5, RandomDouble() - 0.5, 0.0);
     }
 
-    Colour RayColour(const Ray& r, const Hittable& world) const {
+    Colour RayColour(const Ray& r, int depth, const Hittable& world) const {
+        if (depth > max_depth_) {
+            // If we've exceeded the ray bounce limit, no more light can be gathered
+            return Colour(0, 0, 0);
+        }
+
         HitRecord rec;
 
         if (world.Hit(r, Interval(0.001, kInfinity), rec)) {
             Vector direction = RandomOnHemisphere(rec.normal);
-            return 0.5 * RayColour(Ray(rec.p, direction), world);
+            return 0.5 * RayColour(Ray(rec.p, direction), depth + 1, world);
         }
 
         Vector unit_direction = UnitVector(r.direction());
