@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "rt.hpp"
+
 class Vector {
 public:
     Vector() : coords_{0, 0, 0} {}
@@ -50,6 +52,14 @@ public:
         return coords_[0] * coords_[0] + coords_[1] * coords_[1] + coords_[2] * coords_[2];
     }
 
+    static Vector Random() {
+        return Vector(RandomDouble(), RandomDouble(), RandomDouble());
+    }
+
+    static Vector Random(double min, double max) {
+        return Vector(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
+    }
+
 private:
     double coords_[3];
 };
@@ -92,4 +102,27 @@ inline Vector Cross(const Vector& u, const Vector& v) {
 
 inline Vector UnitVector(const Vector& v) {
     return v / v.Length();
+}
+
+inline Vector RandomUnitVector() {
+    // Why can't we just take Vector::Random(-1,1) and scale even if its too big?
+    // Because we would be projecting a uniform distribution from a cube onto a square, and a
+    // disproportionately large number of random vectors would get pulled towards the diagonal
+    // corners.
+    while (true) {
+        auto p = Vector::Random(-1, 1);
+        auto lensq = p.LengthSquared();
+        if (1e-160 <= lensq && lensq <= 1) {
+            return p / std::sqrt(lensq);
+        }
+    }
+}
+
+inline Vector RandomOnHemisphere(const Vector& normal) {
+    Vector on_unit_sphere = RandomUnitVector();
+    if (Dot(on_unit_sphere, normal) > 0.0) { // In the same hemisphere as normal
+        return on_unit_sphere;
+    } else {
+        return -on_unit_sphere;
+    }
 }
