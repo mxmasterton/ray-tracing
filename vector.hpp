@@ -60,6 +60,12 @@ public:
         return Vector(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
     }
 
+    bool NearZero() const {
+        auto s = 1e-8;
+        return (std::fabs(coords_[0]) < s) && (std::fabs(coords_[1]) < s)
+            && (std::fabs(coords_[2]) < s);
+    }
+
 private:
     double coords_[3];
 };
@@ -76,6 +82,10 @@ inline Vector operator+(const Vector& u, const Vector& v) {
 
 inline Vector operator-(const Vector& u, const Vector& v) {
     return Vector(u.x() - v.x(), u.y() - v.y(), u.z() - v.z());
+}
+
+inline Vector operator*(const Vector& u, const Vector& v) {
+    return Vector(u.x() * v.x(), u.y() * v.y(), u.z() * v.z());
 }
 
 inline Vector operator*(double t, const Vector& v) {
@@ -125,4 +135,8 @@ inline Vector RandomOnHemisphere(const Vector& normal) {
     } else {
         return -on_unit_sphere;
     }
+}
+
+inline Vector Reflect(const Vector& v, const Vector& n) {
+    return v - 2*Dot(v, n) * n;
 }

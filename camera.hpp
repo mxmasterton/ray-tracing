@@ -4,6 +4,7 @@
 
 #include "colour.hpp"
 #include "hittable.hpp"
+#include "material.hpp"
 #include "ray.hpp"
 #include "rt.hpp"
 #include "vector.hpp"
@@ -94,10 +95,14 @@ private:
         HitRecord rec;
 
         if (world.Hit(r, Interval(0.001, kInfinity), rec)) {
-            Vector direction = rec.normal + RandomUnitVector();
-            return 0.5 * RayColour(Ray(rec.p, direction), depth + 1, world);
+            Ray scattered;
+            Colour attenuation;
+            if (rec.mat->Scatter(r, rec, attenuation, scattered)) {
+                return attenuation * RayColour(scattered, depth + 1, world);
+            }
         }
 
+        // Background colouring
         Vector unit_direction = UnitVector(r.direction());
         auto a = 0.5 * (unit_direction.y() + 1.0);
         return (1.0 - a) * Colour(1.0, 1.0, 1.0) + a * Colour(0.5, 0.7, 1.0);

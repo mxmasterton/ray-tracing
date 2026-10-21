@@ -1,12 +1,14 @@
 #pragma once
 
 #include <cmath>
+#include <memory>
 
 #include "hittable.hpp"
 
 class Sphere : public Hittable {
 public:
-    Sphere(const Point& centre, double radius) : centre_(centre), radius_(std::fmax(0, radius)) {}
+    Sphere(const Point& centre, double radius, std::shared_ptr<Material> mat) :
+        centre_(centre), radius_(std::fmax(0, radius)), mat_(mat) {}
 
     bool Hit(const Ray& r, Interval ray_t, HitRecord& rec) const override {
         Vector oc = centre_ - r.origin();
@@ -34,6 +36,7 @@ public:
         rec.p = r.At(rec.t);
         Vector outward_normal = (rec.p - centre_) / radius_;
         rec.SetFaceNormal(r, outward_normal);
+        rec.mat = mat_;
 
         return true;
     }
@@ -41,4 +44,5 @@ public:
 private:
     Point centre_;
     double radius_;
+    std::shared_ptr<Material> mat_;
 };

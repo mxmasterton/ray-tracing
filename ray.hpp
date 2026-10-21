@@ -4,6 +4,7 @@
 
 class Ray {
 public:
+    Ray() = default;
     Ray(const Point& origin, const Vector& direction) : origin_(origin), direction_(direction) {}
 
     const Point& origin() const { return origin_; }
