@@ -21,6 +21,15 @@ int main() {
     world.Add(make_shared<Sphere>(Point(-1.0, 0.0, -1.0), 0.5, material_left));
     world.Add(make_shared<Sphere>(Point(1.0, 0.0, -1.0), 0.5, material_right));
 
-    Camera cam(16.0 / 9.0, 1000, 50, 10);
+    Camera cam(
+        16.0 / 9.0, // aspect ratio
+        1000, // image width
+        20, // samples per pixel
+        10, // max depth
+        90, // field of view
+        Point(-2, 2, 1), // camera location
+        Point(0, 0, -1), // camera target
+        Vector(0, 1, 0) // upwards direction
+    );
     cam.Render(world);
 }

@@ -11,28 +11,42 @@
 
 class Camera {
 public:
-    Camera(double aspect_ratio, int image_width, int samples_per_pixel, int max_depth) :
-        aspect_ratio_(aspect_ratio), image_width_(image_width),
-        samples_per_pixel_(samples_per_pixel), max_depth_(max_depth) {
+    Camera(
+        double aspect_ratio, int image_width, int samples_per_pixel, int max_depth, double fov,
+        Point look_from, Point look_to, Vector up
+    ) : aspect_ratio_(aspect_ratio), image_width_(image_width),
+        samples_per_pixel_(samples_per_pixel), max_depth_(max_depth), fov_(fov),
+        look_from_(look_from), look_to_(look_to), up_(up) {
         image_height_ = static_cast<int>(image_width / aspect_ratio);
         image_height_ = (image_height_ < 1) ? 1 : image_height_;
 
         pixel_samples_scale_ = 1.0 / samples_per_pixel;
 
-        centre_ = Point(0, 0, 0);
+        centre_ = look_from_;
 
-        auto focal_length = 1.0;
-        auto viewport_height = 2.0;
+        // Determine viewport directions
+        auto focal_length = (look_from_ - look_to_).Length();
+        auto theta = DegreesToRadians(fov_);
+        auto h = std::tan(theta / 2);
+        auto viewport_height = 2 * h * focal_length;
         auto viewport_width = viewport_height * static_cast<double>(image_width) / image_height_;
 
-        auto viewport_u = Vector(viewport_width, 0, 0);
-        auto viewport_v = Vector(0, -viewport_height, 0);
+        // Calculate the u, v, w unit basis vectors for the camera coordiante frame
+        w_ = UnitVector(look_from_ - look_to_);
+        u_ = UnitVector(Cross(up_, w_));
+        v_ = Cross(w_, u_);
 
+        // Calculate the vectors across the horizontal and down the vertical viewport edges
+        Vector viewport_u = viewport_width * u_;
+        Vector viewport_v = viewport_height * -v_;
+
+        // Calculate the horizontal and vertical delta vectors from pixel to pixel
         pixel_delta_u_ = viewport_u / image_width_;
         pixel_delta_v_ = viewport_v / image_height_;
 
+        // Calculate the location of the upper left pixel
         auto viewport_upper_left = centre_
-            - Vector(0, 0, focal_length) - viewport_u/2 - viewport_v/2;
+            - (focal_length * w_) - viewport_u/2 - viewport_v/2;
         pixel00_loc_ = viewport_upper_left + 0.5 * (pixel_delta_u_ + pixel_delta_v_);
     }
 
@@ -57,15 +71,21 @@ public:
 
 private:
     int image_width_;
-    int image_height_;
     int samples_per_pixel_;
     int max_depth_;
     double aspect_ratio_;
+    double fov_;
+    Point look_from_ = Point(0, 0, 0);
+    Point look_to_ = Point(0, 0, -1);
+    Vector up_ = Vector(0, 1, 0);
+
+    int image_height_;
     double pixel_samples_scale_;
     Point centre_;
     Point pixel00_loc_;
     Vector pixel_delta_u_;
     Vector pixel_delta_v_;
+    Vector u_, v_, w_;
 
     Ray GetRay(int i, int j) const {
         // Construct a camera ray originating from the origin and directed at a random
