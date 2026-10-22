@@ -26,7 +26,7 @@ int main() {
         1000, // image width
         20, // samples per pixel
         10, // max depth
-        90, // field of view
+        20, // field of view
         Point(-2, 2, 1), // camera location
         Point(0, 0, -1), // camera target
         Vector(0, 1, 0) // upwards direction

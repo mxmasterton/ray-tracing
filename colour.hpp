@@ -1,6 +1,8 @@
 #pragma once
 
+#include <array>
 #include <cmath>
+#include <cstdint>
 #include <iostream>
 
 #include "interval.hpp"
@@ -16,22 +18,24 @@ inline double LinearToGamma(double linear_component) {
     return 0;
 }
 
-inline void WriteColour(std::ostream& out, const Colour& pixel_colour) {
-    auto r = pixel_colour.x();
-    auto g = pixel_colour.y();
-    auto b = pixel_colour.z();
+inline std::array<std::uint8_t, 3> ToRGB(const Colour& pixel_colour) {
+    // Apply a linear to gamma transform for gamma 2.
+    const auto r = LinearToGamma(pixel_colour.x());
+    const auto g = LinearToGamma(pixel_colour.y());
+    const auto b = LinearToGamma(pixel_colour.z());
 
-    // Apply a linear to gamma transform for gamma 2
-    r = LinearToGamma(r);
-    g = LinearToGamma(g);
-    b = LinearToGamma(b);
-
-    // Translate the [0,1] component values to the byte range [0,255]
+    // Translate the [0,1] component values to the byte range [0,255].
     static const Interval intensity(0.000, 0.999);
-    int rbyte = static_cast<int>(256 * intensity.Clamp(r));
-    int gbyte = static_cast<int>(256 * intensity.Clamp(g));
-    int bbyte = static_cast<int>(256 * intensity.Clamp(b));
+    return {
+        static_cast<std::uint8_t>(256 * intensity.Clamp(r)),
+        static_cast<std::uint8_t>(256 * intensity.Clamp(g)),
+        static_cast<std::uint8_t>(256 * intensity.Clamp(b)),
+    };
+}
 
-    // Write out the pixel colour components
-    out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
+inline void WriteColour(std::ostream& out, const Colour& pixel_colour) {
+    const auto rgb = ToRGB(pixel_colour);
+    out << static_cast<int>(rgb[0]) << ' '
+        << static_cast<int>(rgb[1]) << ' '
+        << static_cast<int>(rgb[2]) << '\n';
 }

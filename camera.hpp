@@ -3,8 +3,11 @@
 #include <algorithm>
 #include <atomic>
 #include <iostream>
+#include <stdexcept>
 #include <thread>
 #include <vector>
+
+#include "stb_image_write.h"
 
 #include "colour.hpp"
 #include "hittable.hpp"
@@ -89,12 +92,22 @@ public:
             worker.join();
         }
 
-        std::cout << "P3\n" << image_width_ << ' ' << image_height_ << "\n255\n";
-        for (const auto& pixel : pixels) {
-            WriteColour(std::cout, pixel);
+        std::vector<unsigned char> image_data(pixel_count * 3);
+        for (std::size_t pixel_index = 0; pixel_index < pixel_count; ++pixel_index) {
+            const auto rgb = ToRGB(pixels[pixel_index]);
+            const auto byte_index = pixel_index * 3;
+            image_data[byte_index] = rgb[0];
+            image_data[byte_index + 1] = rgb[1];
+            image_data[byte_index + 2] = rgb[2];
         }
 
-        std::clog << "Done!" << '\n';
+        if (!stbi_write_png(
+                "image.png", image_width_, image_height_, 3, image_data.data(), image_width_ * 3
+            )) {
+            throw std::runtime_error("Failed to write image.png");
+        }
+
+        std::clog << "Wrote image.png" << '\n';
     }
 
 private:
