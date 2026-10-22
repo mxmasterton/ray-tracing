@@ -4,7 +4,7 @@
 
 #include "colour.hpp"
 #include "hittable.hpp"
-#include "material.hpp"
+#include "material.hpp" // IWYU pragma: keep
 #include "ray.hpp"
 #include "rt.hpp"
 #include "vector.hpp"
