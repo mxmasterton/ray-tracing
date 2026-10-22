@@ -1,6 +1,10 @@
 #pragma once
 
+#include <algorithm>
+#include <atomic>
 #include <iostream>
+#include <thread>
+#include <vector>
 
 #include "colour.hpp"
 #include "hittable.hpp"
@@ -51,19 +55,43 @@ public:
     }
 
     void Render(const Hittable& world) {
-        std::cout << "P3\n" << image_width_ << ' ' << image_height_ << "\n255\n";
+        const auto pixel_count = static_cast<std::size_t>(image_width_) * image_height_;
+        std::vector<Colour> pixels(pixel_count);
+        std::atomic<std::size_t> next_pixel = 0;
 
-        for (int j = 0; j < image_height_; ++j) {
-            std::clog << "Scanlines remaining: " << (image_height_ - j) << '\n';
+        const auto worker_count = std::max(1u, std::thread::hardware_concurrency());
+        std::vector<std::thread> workers;
+        workers.reserve(worker_count);
 
-            for (int i = 0; i < image_width_; ++i) {
-                Colour pixel_colour(0, 0, 0);
-                for (int sample = 0; sample < samples_per_pixel_; ++sample) {
-                    Ray r = GetRay(i, j);
-                    pixel_colour += RayColour(r, 1, world);
+        for (unsigned int worker = 0; worker < worker_count; ++worker) {
+            workers.emplace_back([this, &world, &pixels, &next_pixel, pixel_count] {
+                while (true) {
+                    const auto pixel_index = next_pixel.fetch_add(1);
+                    if (pixel_index >= pixel_count) {
+                        break;
+                    }
+
+                    const int i = static_cast<int>(pixel_index % image_width_);
+                    const int j = static_cast<int>(pixel_index / image_width_);
+
+                    Colour pixel_colour(0, 0, 0);
+                    for (int sample = 0; sample < samples_per_pixel_; ++sample) {
+                        pixel_colour += RayColour(GetRay(i, j), 1, world);
+                    }
+
+                    // Every worker receives a unique index, so no pixel is written concurrently.
+                    pixels[pixel_index] = pixel_colour * pixel_samples_scale_;
                 }
-                WriteColour(std::cout, pixel_colour * pixel_samples_scale_);
-            }
+            });
+        }
+
+        for (auto& worker : workers) {
+            worker.join();
+        }
+
+        std::cout << "P3\n" << image_width_ << ' ' << image_height_ << "\n255\n";
+        for (const auto& pixel : pixels) {
+            WriteColour(std::cout, pixel);
         }
 
         std::clog << "Done!" << '\n';
