@@ -1,3 +1,4 @@
 main
 image.ppm
-.clangd
+build/
+.cache/

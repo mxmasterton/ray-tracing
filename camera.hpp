@@ -46,7 +46,7 @@ public:
                 Colour pixel_colour(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel_; ++sample) {
                     Ray r = GetRay(i, j);
-                    pixel_colour += RayColour(r, 0, world);
+                    pixel_colour += RayColour(r, 1, world);
                 }
                 WriteColour(std::cout, pixel_colour * pixel_samples_scale_);
             }
@@ -99,6 +99,8 @@ private:
             Colour attenuation;
             if (rec.mat->Scatter(r, rec, attenuation, scattered)) {
                 return attenuation * RayColour(scattered, depth + 1, world);
+            } else {
+                return Colour(0, 0, 0);
             }
         }
 
