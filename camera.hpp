@@ -6,7 +6,7 @@
 #include "hittable.hpp"
 #include "material.hpp" // IWYU pragma: keep
 #include "ray.hpp"
-#include "rt.hpp"
+#include "utility.hpp"
 #include "vector.hpp"
 
 class Camera {
