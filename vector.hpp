@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -139,4 +140,11 @@ inline Vector RandomOnHemisphere(const Vector& normal) {
 
 inline Vector Reflect(const Vector& v, const Vector& n) {
     return v - 2*Dot(v, n) * n;
+}
+
+inline Vector Refract(const Vector& uv, const Vector& n, double etai_over_etat) {
+    auto cos_theta = std::min(Dot(-uv, n), 1.0);
+    Vector r_out_perp = etai_over_etat * (uv + cos_theta*n);
+    Vector r_out_parallel = -std::sqrt(std::fabs(1.0 - r_out_perp.LengthSquared())) * n;
+    return r_out_perp + r_out_parallel;
 }
